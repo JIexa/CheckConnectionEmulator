@@ -1,16 +1,12 @@
 package com.malyshev;
 
 import com.malyshev.metrics.Timer;
-import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Random;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 
 public class SupervisorTests {
 

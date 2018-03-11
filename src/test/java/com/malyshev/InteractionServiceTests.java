@@ -13,7 +13,7 @@ public class InteractionServiceTests {
 
         int responseCode = interactionService.sendTo("addr", "command");
 
-        Assert.assertEquals( "connection was established", 200, responseCode);
+        Assert.assertEquals("connection was established", 200, responseCode);
 
     }
 }

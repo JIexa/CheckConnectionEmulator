@@ -91,9 +91,9 @@ public class ThreadSupervisor implements Supervisor {
                 e.printStackTrace();
             }
 
-            if ( rc == 200)
+            if (rc == 200)
                 okResponseCounter.add(rc);
-            else if ( rc == 504)
+            else if (rc == 504)
                 timeoutResponseCounter.add(rc);
         });
 

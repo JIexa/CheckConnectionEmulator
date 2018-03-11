@@ -22,7 +22,8 @@ public class MockInteractionService implements InteractionService {
             } else {
                 Thread.sleep(TIMEOUT * 1000L);
                 System.out.printf("thread: %s. Timeout expired (%d) %n", Thread.currentThread().getName(), pseudoConnectionTime);
-                return 504;
+                throw new RuntimeException("Timeout expired");
+//                return 504;
             }
         } catch (InterruptedException e) {
             System.out.printf("error occurred: %s %n", e.getLocalizedMessage());

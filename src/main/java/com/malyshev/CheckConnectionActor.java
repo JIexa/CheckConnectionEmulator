@@ -40,13 +40,14 @@ public class CheckConnectionActor extends AbstractActor {
         return receiveBuilder()
                 .match(CheckConnectionData.class, d -> {
                     System.out.println("Started execution of checkConnection");
-//                    Future<Integer> f = Futures.future(() -> {
-//                        return responseCode;
-//                    }, ec);
+                    Future<Integer> f = Futures.future(() -> {
+                        int responseCode = interactionService.sendTo(d.ipAddress, d.command);
+                        return responseCode;
+                    }, ec);
 
-                    int responseCode = interactionService.sendTo(d.ipAddress, d.command);
                     System.out.printf("sending to %s%n", analyzer);
-                    analyzer.tell(new AnalyzerActor.ResponseMessage(responseCode), self());
+
+                    analyzer.tell(new AnalyzerActor.ResponseMessage(f), self());
                     getContext().stop(getSelf());
                 })
                 .build();

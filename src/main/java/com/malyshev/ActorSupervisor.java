@@ -4,7 +4,10 @@ import akka.actor.AbstractActor;
 import akka.actor.ActorRef;
 import akka.actor.Props;
 import akka.actor.Terminated;
-import akka.routing.*;
+import akka.routing.ActorRefRoutee;
+import akka.routing.RoundRobinRoutingLogic;
+import akka.routing.Routee;
+import akka.routing.Router;
 import com.malyshev.metrics.Timer;
 
 import java.util.ArrayList;
@@ -65,7 +68,6 @@ public class ActorSupervisor extends AbstractActor {
                             router = router.removeRoutee(m.actor());
                             System.out.printf("checkers are left: %d%n", --countDown);
                             if (countDown == 0) {
-                                analyzer.tell(new AnalyzerActor.LastMessage(), self());
                                 timer.stop();
                                 getContext().stop(self());
                             }

@@ -1,35 +1,37 @@
 package com.malyshev;
 
 import akka.actor.AbstractActor;
-import akka.actor.PoisonPill;
 import akka.actor.Props;
-import akka.actor.Terminated;
+import com.malyshev.metrics.Timer;
+import scala.compat.java8.FutureConverters;
+import scala.concurrent.ExecutionContext;
 import scala.concurrent.Future;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.CompletionStage;
 
 public class AnalyzerActor extends AbstractActor {
 
     private final List<Integer> timeoutResponseCounter = new ArrayList<>();
     private final List<Integer> okResponseCounter = new ArrayList<>();
 
+    private final ExecutionContext ec;
+    
     static public Props props() {
         return Props.create(AnalyzerActor.class, AnalyzerActor::new);
     }
 
-    static public class ResponseMessage {
-        private final int responseCode;
+    public AnalyzerActor() {
+        ec = getContext().getSystem().dispatchers().lookup("akka.actor.my-dispatcher");
+    }
 
-        public ResponseMessage(int responseCode) {
-            this.responseCode = responseCode;
+    static public class ResponseMessage {
+        private final Future<Integer> future;
+
+        public ResponseMessage(Future<Integer> future) {
+            this.future = future;
         }
-//    }    static public class ResponseMessage {
-//        private final Future<Integer> future;
-//
-//        public ResponseMessage(Future<Integer> future) {
-//            this.future = future;
-//        }
     }
 
     static public class LastMessage {
@@ -39,14 +41,19 @@ public class AnalyzerActor extends AbstractActor {
     public Receive createReceive() {
         return receiveBuilder()
                 .match(ResponseMessage.class, rm -> {
-                    System.out.println("++++++++++ start analyzing +++++++++");
+                    System.out.println("============ start analyzing ============");
 
-                    int responseCode = rm.responseCode;
+                    CompletionStage<Integer> cs = FutureConverters.toJava(rm.future);
 
-                    if ( responseCode == 200)
-                        okResponseCounter.add(responseCode);
-                    else if ( responseCode == 504)
+                    cs.thenApply(x -> {
+                        if (x == 200)
+                            okResponseCounter.add(x);
+                        return x;
+                    }).exceptionally(x -> {
+                        int responseCode = 504;
                         timeoutResponseCounter.add(responseCode);
+                        return responseCode;
+                    });
                 })
                 .match(LastMessage.class, x -> {
                     System.out.printf("successful messages: %d, failed messages: %d%n", okResponseCounter.size(), timeoutResponseCounter.size());

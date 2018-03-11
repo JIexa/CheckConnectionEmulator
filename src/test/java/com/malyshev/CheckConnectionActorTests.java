@@ -2,22 +2,19 @@ package com.malyshev;
 
 import akka.actor.ActorRef;
 import akka.actor.ActorSystem;
-import akka.actor.PoisonPill;
-import akka.routing.RoundRobinPool;
 import com.malyshev.metrics.Timer;
 import org.junit.Before;
 import org.junit.Test;
-import scala.concurrent.Await;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
 
-import static com.malyshev.ActorSupervisor.*;
+import static com.malyshev.ActorSupervisor.props;
 
 public class CheckConnectionActorTests {
 
-    private final int NUMBER_OF_DEVICES = 1000;
+    private final int NUMBER_OF_DEVICES = 100;
 
     private Timer timer;
 
@@ -59,13 +56,16 @@ public class CheckConnectionActorTests {
     }
 
     @Test
-    public void checkConnectionByActor() {
+    public void checkConnectionByActor() throws InterruptedException {
 
         List<CheckConnectionActor.CheckConnectionData> checkConnectionDataList = getCheckConnectionDataFrom(devices);
 
         checkConnectionDataList.parallelStream().forEach(ccd -> router.tell(ccd, ActorRef.noSender()));
 
-        while (!analyzer.isTerminated());
+        Thread.sleep(15000);
+        analyzer.tell(new AnalyzerActor.LastMessage(), ActorRef.noSender());
+
+        while (!analyzer.isTerminated()) ;
 
         System.out.println("it is over!");
 
@@ -75,7 +75,7 @@ public class CheckConnectionActorTests {
 
         List<CheckConnectionActor.CheckConnectionData> checkConnectionDataList = new ArrayList<>();
 
-        devices.forEach( device -> {
+        devices.forEach(device -> {
             CheckConnectionActor.CheckConnectionData ccd = new CheckConnectionActor.CheckConnectionData(device);
 
             checkConnectionDataList.add(ccd);
